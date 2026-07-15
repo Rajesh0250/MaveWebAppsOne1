@@ -1,14 +1,12 @@
 # Use Java 17 runtime
-FROM eclipse-temurin:17-jre
+FROM tomcat:10.1-jdk17-temurin
 
-# Set working directory
-WORKDIR /app
+# Remove the default application
+RUN rm -rf /usr/local/tomcat/webapps/*
 
-# Copy the JAR file from Maven target directory
-COPY target/*.jar app.jar
+# Copy your WAR file
+COPY target/MavenWebAppOne.war /usr/local/tomcat/webapps/ROOT.war
 
-# Expose application port (change if needed)
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["catalina.sh", "run"]
