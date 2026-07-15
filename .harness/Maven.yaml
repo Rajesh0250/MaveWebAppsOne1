@@ -93,19 +93,39 @@ pipeline:
                       - <+codebase.branch>-<+pipeline.sequenceId>
                     dockerfile: MaveWebAppsOne1/Dockerfile
                     context: MaveWebAppsOne1
-              - step:
-                  type: Run
-                  name: Build_Image
-                  identifier: Build_Image
-                  spec:
-                    shell: Sh
-                    command: |-
-                      docker pull rajesh0250/harness:<+codebase.branch>-<+pipeline.sequenceId>
+              - parallel:
+                  - step:
+                      type: Run
+                      name: Build_Image
+                      identifier: Build_Image
+                      spec:
+                        shell: Sh
+                        command: |-
+                          docker pull rajesh0250/harness:<+codebase.branch>-<+pipeline.sequenceId>
 
-                      docker run -d \
-                        --name harness-webapp \
-                        -p 8080:8080 \
-                        rajesh0250/harness:<+codebase.branch>-<+pipeline.sequenceId>
+                          docker run -d \
+                            --name harness-webapp \
+                            -p 8080:8080 \
+                            rajesh0250/harness:<+codebase.branch>-<+pipeline.sequenceId>
+                  - step:
+                      type: AquaTrivy
+                      name: AquaTrivy_1
+                      identifier: AquaTrivy_1
+                      spec:
+                        mode: orchestration
+                        config: default
+                        target:
+                          type: container
+                          detection: auto
+                        advanced:
+                          log:
+                            level: info
+                        privileged: true
+                        image:
+                          type: docker_v2
+                          tag: <+codebase.branch>-<+pipeline.sequenceId>
+                          name: rajesh0250/harness
+                          domain: https://index.docker.io/v2/
               - step:
                   type: Run
                   name: Access_application
@@ -116,44 +136,3 @@ pipeline:
                       docker ps
 
                       curl http://localhost:8080
-    - stage:
-        name: approval
-        identifier: approval
-        description: ""
-        type: Approval
-        spec:
-          execution:
-            steps:
-              - step:
-                  type: CustomApproval
-                  name: testapproval
-                  identifier: testapproval
-                  timeout: 1d
-                  spec:
-                    shell: Bash
-                    retryInterval: 10s
-                    scriptTimeout: 10m
-                    source:
-                      type: Inline
-                      spec:
-                        script: echo "Apporve"
-                    environmentVariables: []
-                    approvalCriteria:
-                      type: KeyValues
-                      spec:
-                        matchAnyCondition: false
-                        conditions:
-                          - key: test
-                            operator: equals
-                            value: "1"
-                    rejectionCriteria:
-                      type: KeyValues
-                      spec:
-                        matchAnyCondition: false
-                        conditions: []
-                    onDelegate: true
-                    outputVariables:
-                      - name: Test
-                        type: String
-                        value: "1"
-        tags: {}
