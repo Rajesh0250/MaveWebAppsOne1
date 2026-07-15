@@ -125,7 +125,7 @@ pipeline:
                           type: docker_v2
                           tag: <+codebase.branch>-<+pipeline.sequenceId>
                           name: rajesh0250/harness
-                          domain: https://index.docker.io/v2/
+                          domain: index.docker.io
               - step:
                   type: Run
                   name: Access_application
