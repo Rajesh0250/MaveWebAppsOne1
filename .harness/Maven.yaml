@@ -116,3 +116,44 @@ pipeline:
                       docker ps
 
                       curl http://localhost:8080
+    - stage:
+        name: approval
+        identifier: approval
+        description: ""
+        type: Approval
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: CustomApproval
+                  name: testapproval
+                  identifier: testapproval
+                  timeout: 1d
+                  spec:
+                    shell: Bash
+                    retryInterval: 10s
+                    scriptTimeout: 10m
+                    source:
+                      type: Inline
+                      spec:
+                        script: echo "Apporve"
+                    environmentVariables: []
+                    approvalCriteria:
+                      type: KeyValues
+                      spec:
+                        matchAnyCondition: false
+                        conditions:
+                          - key: test
+                            operator: equals
+                            value: "1"
+                    rejectionCriteria:
+                      type: KeyValues
+                      spec:
+                        matchAnyCondition: false
+                        conditions: []
+                    onDelegate: true
+                    outputVariables:
+                      - name: Test
+                        type: String
+                        value: "1"
+        tags: {}
