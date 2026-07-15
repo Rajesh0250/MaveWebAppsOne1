@@ -51,23 +51,40 @@ pipeline:
 
                       echo "Files inside cloned repository:"
                       ls -la MaveWebAppsOne1
-              - step:
-                  type: Run
-                  name: Build
-                  identifier: Build
-                  spec:
-                    connectorRef: rajesh0250_Docker_reg
-                    image: maven:3.9.9-eclipse-temurin-17
-                    shell: Sh
-                    command: |-
-                      cd MaveWebAppsOne1
-                      mvn clean test
+              - parallel:
+                  - step:
+                      type: Run
+                      name: Build
+                      identifier: Build
+                      spec:
+                        connectorRef: rajesh0250_Docker_reg
+                        image: maven:3.9.9-eclipse-temurin-17
+                        shell: Sh
+                        command: |-
+                          cd MaveWebAppsOne1
+                          mvn clean test
 
-                      mvn clean package
+                          mvn clean package
 
-                      echo "Exit code: $?"
+                          echo "Exit code: $?"
 
-                      find . -maxdepth 2
+                          find . -maxdepth 2
+                  - step:
+                      type: Test
+                      name: Test_1
+                      identifier: Test_1
+                      spec:
+                        shell: Sh
+                        command: |-
+                          cd MaveWebAppsOne1
+                          mvn clean test
+
+                          mvn clean package
+
+                          echo "Exit code: $?"
+
+                          find . -maxdepth 2
+                        intelligenceMode: true
               - step:
                   type: Run
                   name: list files
