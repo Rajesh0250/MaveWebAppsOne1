@@ -168,3 +168,9 @@ pipeline:
                   spec:
                     agentName: aiCodeReviewAgent
                     agentSettings: {}
+  properties:
+    ci:
+      codebase:
+        repoName: Tets
+        build: <+input>
+        sparseCheckout: []
