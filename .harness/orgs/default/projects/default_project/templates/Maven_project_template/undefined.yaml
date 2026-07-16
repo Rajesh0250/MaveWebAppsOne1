@@ -1,0 +1,120 @@
+template:
+  name: Maven_project_template
+  type: Stage
+  projectIdentifier: default_project
+  orgIdentifier: default
+  spec:
+    type: CI
+    spec:
+      cloneCodebase: true
+      platform:
+        os: Linux
+        arch: Amd64
+      runtime:
+        type: Cloud
+        spec: {}
+      execution:
+        steps:
+          - step:
+              type: Run
+              name: Hello
+              identifier: Run_1
+              spec:
+                shell: Sh
+                command: echo "hello"
+          - step:
+              type: GitClone
+              name: GitClone
+              identifier: GitClone_1
+              spec:
+                connectorRef: Git_RK
+                cloneDirectory: MaveWebAppsOne1
+                build:
+                  type: branch
+                  spec:
+                    branch: master
+          - step:
+              type: Run
+              name: list_dir
+              identifier: Run_2
+              spec:
+                shell: Sh
+                command: |-
+                  echo "Current directory:"
+                  pwd
+                  echo "Files in workspace:"
+                  ls -la
+                  echo "Files inside cloned repository:"
+                  ls -la MaveWebAppsOne1
+          - step:
+              type: Test
+              name: Test_1
+              identifier: Test_1
+              spec:
+                connectorRef: rajesh0250_Docker_reg
+                image: maven:3.9.9-eclipse-temurin-17
+                shell: Sh
+                command: |-
+                  cd MaveWebAppsOne1
+                  mvn clean test
+                  mvn package -DskipTests
+                intelligenceMode: true
+                reports:
+                  type: JUnit
+                  spec:
+                    paths:
+                      - MaveWebAppsOne1/target/surefire-reports/*.xml
+          - step:
+              type: BuildAndPushDockerRegistry
+              name: BuildAndPushDockerRegistry
+              identifier: BuildAndPushDockerRegistry_1
+              spec:
+                connectorRef: rajesh0250_Docker_reg
+                repo: rajesh0250/harness
+                tags:
+                  - master-<+pipeline.sequenceId>
+                dockerfile: MaveWebAppsOne1/Dockerfile
+                context: MaveWebAppsOne1
+          - parallel:
+              - step:
+                  type: Run
+                  name: Build_Image
+                  identifier: Build_Image
+                  spec:
+                    shell: Sh
+                    command: |-
+                      docker pull rajesh0250/harness:master-<+pipeline.sequenceId>
+                      docker run -d \
+                        --name harness-webapp \
+                        -p 8080:8080 \
+                        rajesh0250/harness:master-<+pipeline.sequenceId>
+              - step:
+                  type: AquaTrivy
+                  name: AquaTrivy_1
+                  identifier: AquaTrivy_1
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: container
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+                    privileged: true
+                    image:
+                      type: docker_v2
+                      tag: master-<+pipeline.sequenceId>
+                      name: rajesh0250/harness
+                      domain: index.docker.io
+          - step:
+              type: Run
+              name: Access_application
+              identifier: Access_application
+              spec:
+                shell: Sh
+                command: |-
+                  docker ps
+                  curl http://localhost:8080
+  identifier: Maven_project_template
+  versionLabel: "1"
