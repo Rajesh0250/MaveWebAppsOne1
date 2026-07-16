@@ -36,21 +36,29 @@ pipeline:
                       type: branch
                       spec:
                         branch: master
-              - step:
-                  type: Run
-                  name: list_dir
-                  identifier: Run_2
-                  spec:
-                    shell: Sh
-                    command: |-
-                      echo "Current directory:"
-                      pwd
+              - parallel:
+                  - step:
+                      type: Run
+                      name: list_dir
+                      identifier: Run_2
+                      spec:
+                        shell: Sh
+                        command: |-
+                          echo "Current directory:"
+                          pwd
 
-                      echo "Files in workspace:"
-                      ls -la
+                          echo "Files in workspace:"
+                          ls -la
 
-                      echo "Files inside cloned repository:"
-                      ls -la MaveWebAppsOne1
+                          echo "Files inside cloned repository:"
+                          ls -la MaveWebAppsOne1
+                  - step:
+                      type: Agent
+                      name: Agent_2
+                      identifier: Agent_2
+                      spec:
+                        agentName: aiCodeReviewAgent
+                        agentSettings: {}
               - parallel:
                   - step:
                       type: Run
@@ -153,3 +161,10 @@ pipeline:
                       docker ps
 
                       curl http://localhost:8080
+              - step:
+                  type: Agent
+                  name: Agent_1
+                  identifier: Agent_1
+                  spec:
+                    agentName: aiCodeReviewAgent
+                    agentSettings: {}
